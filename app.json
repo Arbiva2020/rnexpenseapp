@@ -23,6 +23,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0a3ed3ee-45e5-4577-8e5b-a878b24924dc"
+      }
+    },
+    "owner": "arbiva"
   }
 }

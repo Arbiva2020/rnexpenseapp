@@ -1,10 +1,9 @@
 import { View, StyleSheet, Text } from "react-native";
+import ExpensesOutput from "../components/ExpensesOutput/ExpensesOutput";
 
 function AllExpenses() {
   return (
-    <View style={styles.container}>
-      <Text>All Expenses</Text>
-    </View>
+    <ExpensesOutput expensesPeriod={"Total"} fallbackText="No registered expenses found!" />
   );
 }
 

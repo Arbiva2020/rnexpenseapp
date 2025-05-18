@@ -1,10 +1,11 @@
 import { View, StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
+import ExpensesOutput from "../components/ExpensesOutput/ExpensesOutput";
 
 function ManageExpenses() {
   return (
-    <View style={styles.container}>
-      <Text>Manage Expenses</Text>
-    </View>
+    <ExpensesOutput expensesPeriod={"Last 7 days"}  />
   );
 }
 
