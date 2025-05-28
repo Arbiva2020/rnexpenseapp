@@ -3,13 +3,15 @@ import { GlobalStyles } from "../constants/styles";
 import { getFormattedDate } from "../util/date";
 import { useNavigation } from "@react-navigation/native";
 
-function ExpenseItem({ description, amount, date }) {
+function ExpenseItem({ id, description, amount, date }) {
   //we cant recieve the navigation prop here, because this is not a stand alone page but a component
   //that is rendered in other pages. how can we navigate properly in such a case? by using hooks.
   const navigation = useNavigation();
 
+  // to know which expense to delete and so on, we need to pass here the identifire of that specific expense by addinf another 
+  //parameter to the navigation, which we will recieve as props. in "ManageExpenses" we will render that expense.
   function expensePressHandler() {
-    navigation.navigate("Manage expense screen");
+    navigation.navigate("Manage expense screen", {expenseId: id});
   }
 
   return (
