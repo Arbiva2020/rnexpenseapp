@@ -1,22 +1,28 @@
-import { useLayoutEffect } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { useContext, useLayoutEffect } from "react";
+import { View, StyleSheet, Text, TextInput } from "react-native";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
+import { ExpensesContext } from "../store/expenses-context";
+import ExpenseForm from "../components/ManageExpenses/ExpenseForm";
 
 //we will use the "route" prop to extract the id:
 function ManageExpenses({ route, navigation }) {
+  // to trigger the deletion function, we need access to context:
+  const expensesCtx = useContext(ExpensesContext);
   const editExpenseId = route.params?.expenseId;
   //to convert an elenent to a boolean, we use: !! in this way, a falsy value turns into false, and a truthy value turns into true
-  const isEdditing = !!editExpenseId;
+  const isEditing = !!editExpenseId;
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: isEdditing ? "Edit expense" : "Add expense",
+      title: isEditing ? "Edit expense" : "Add expense",
     });
-  }, [navigation, isEdditing]);
+  }, [navigation, isEditing]);
 
   function deleteExpensesHandler() {
+    //to delete an item, the items id should be passed:
+    expensesCtx.deleteExpense(editExpenseId);
     navigation.goBack();
   }
 
@@ -24,21 +30,25 @@ function ManageExpenses({ route, navigation }) {
     navigation.goBack();
   }
 
-  function confirmHandler() {
+  function confirmHandler(expenseData) {
+    if (isEditing) {
+      expensesCtx.updateExpense(editExpenseId, expenseData);
+    } else {
+      expensesCtx.addExpense(expenseData);
+    }
     navigation.goBack();
-  }
+  } //connection on confirmHandler to ExpenseForm.js will be through thr onSubmit prop in <ExpenseForm>:
 
   return (
     <View style={styles.container}>
-      <View style={styles.buttonsContainer}>
-        <Button style={styles.button} mode="flat" onPress={cancelHandler}>
-          Cancel
-        </Button>
-        <Button style={styles.button} onPress={confirmHandler}>
-          {isEdditing ? "Update" : "Add"}
-        </Button>
-      </View>
-      {isEdditing && (
+      <ExpenseForm
+        submitButtonLable={isEditing ? "Update" : "Add"}
+        onCancel={cancelHandler}
+        onSubmit={confirmHandler}
+      />
+      <TextInput />
+
+      {isEditing && (
         <View style={styles.deleteContainer}>
           <IconButton
             icon="trash"
@@ -66,15 +76,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: GlobalStyles.colors.primary200,
     alignItems: "center",
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  button: {
-    minWidth: 120,
-    marginHorizontal: 8,
   },
 });
 

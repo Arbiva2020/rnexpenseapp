@@ -69,7 +69,7 @@ function expensesReducer(state, action) {
     case "UPDATE":
       //"findindex()" is a js method that returns the index of the first element in the array that matches our demands.
       //meaning that when the id of an element will match the action.payload.id, we will return it.
-      const updatableExpenseIndex = state.findindex(
+      const updatableExpenseIndex = state.findIndex(
         (expense) => expense.id === action.payload.id
       );
       const updatableExpense = state[updatableExpenseIndex];
