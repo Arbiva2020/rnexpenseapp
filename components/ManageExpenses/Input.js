@@ -5,16 +5,21 @@ import { GlobalStyles } from "../../constants/styles";
 // the reason to use styles as prop here is because adding the specific style we wanted to the main view
 // in ExpenseForm.js will mess up the whole styling of the page.
 
-function Input({ lable, textInputConfig, style }) {
+function Input({ lable, textInputConfig, style, invalid }) {
   let inputStyles = [styles.input];
   // pay atenttion to this conditional styling!!! :
   if (textInputConfig && textInputConfig.multiline) {
     inputStyles.push(styles.inputMultiline);
   }
+  if (invalid) {
+    inputStyles.push(styles.invalidInput);
+  }
 
   return (
     <View style={[styles.inputContainer, style]}>
-      <Text style={styles.lable}>{lable}</Text>
+      <Text style={[styles.lable, invalid && styles.invalidLable]}>
+        {lable}
+      </Text>
       {/* we could specify in the textInput what we want to access, for example: keyboardType={type} maxLength={maxLength} and than
        state them as props, or we coul destructur them, like so: */}
       <TextInput style={inputStyles} {...textInputConfig} />
@@ -45,5 +50,11 @@ const styles = StyleSheet.create({
   inputMultiline: {
     minHeight: 100,
     textAlignVertical: "top",
+  },
+  invalidLable: {
+    color: GlobalStyles.colors.error500,
+  },
+  invalidInput: {
+    backgroundColor: GlobalStyles.colors.error50,
   },
 });

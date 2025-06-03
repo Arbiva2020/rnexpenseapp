@@ -5,6 +5,7 @@ import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpenses/ExpenseForm";
+import { storeExpense } from "../util/http";
 
 //we will use the "route" prop to extract the id:
 function ManageExpenses({ route, navigation }) {
@@ -13,6 +14,13 @@ function ManageExpenses({ route, navigation }) {
   const editExpenseId = route.params?.expenseId;
   //to convert an elenent to a boolean, we use: !! in this way, a falsy value turns into false, and a truthy value turns into true
   const isEditing = !!editExpenseId;
+
+  //when we want to edit a specific expense, we want the values of that expense to appear in the edditing form.
+  //so, we go through all of the expenses in the context, and when an expense id matches the edited expense we
+  //want to edit now, we upload the relevant values of that expense to the edditing form.
+  const selectedExpense = expensesCtx.expenses.find(
+    (expense) => expense.id === editExpenseId
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -30,10 +38,15 @@ function ManageExpenses({ route, navigation }) {
     navigation.goBack();
   }
 
+  //except of saving the data localy using Ctx(context) so will; have anm offline copy, we want to save it in our axios based database
   function confirmHandler(expenseData) {
     if (isEditing) {
-      expensesCtx.updateExpense(editExpenseId, expenseData);
+      expensesCtx.updateExpense({
+        id: editExpenseId,
+        expenseData: expenseData,
+      });
     } else {
+      storeExpense(expenseData);
       expensesCtx.addExpense(expenseData);
     }
     navigation.goBack();
@@ -45,6 +58,7 @@ function ManageExpenses({ route, navigation }) {
         submitButtonLable={isEditing ? "Update" : "Add"}
         onCancel={cancelHandler}
         onSubmit={confirmHandler}
+        defaultValues={selectedExpense}
       />
       <TextInput />
 
