@@ -7,8 +7,10 @@ import { getDateMinusDays } from "../util/date";
 import { ExpensesContext } from "../store/expenses-context";
 import { fetchExpenses } from "../util/http";
 import LoadingOverlay from "../components/UI/LoadingOverlay";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 
 function RecentExpenses() {
+  const [error, setError] = useState();
   //i want to have local state here to know if we are loading data or not:
   const [isFetching, setIsFetching] = useState(true);
   const expensesCtx = useContext(ExpensesContext);
@@ -17,13 +19,18 @@ function RecentExpenses() {
   useEffect(() => {
     async function getExpenses() {
       setIsFetching(true);
-      const expenses = await fetchExpenses(); // This now refers to the imported function
+      try {
+        const expenses = await fetchExpenses(); // This now refers to the imported function
+        const expensesWithDates = expenses.map((expense) => ({
+          ...expense,
+          date: new Date(expense.date),
+        }));
+        expensesCtx.setAllExpenses(expensesWithDates);
+      } catch (error) {
+        setError("could not fetch expenses");
+      }
       setIsFetching(false);
-      const expensesWithDates = expenses.map((expense) => ({
-        ...expense,
-        date: new Date(expense.date),
-      }));
-      expensesCtx.setAllExpenses(expensesWithDates);
+
       // const expensesWithDates = expenses.map((expense) => ({
       //   ...expense,
       //   date: new Date(expense.date),
@@ -32,6 +39,14 @@ function RecentExpenses() {
     }
     getExpenses();
   }, []);
+
+  function errorHandler() {
+    setError(null);
+  }
+
+  if (error && !isFetching) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
 
   if (isFetching) {
     return <LoadingOverlay />;

@@ -7,9 +7,11 @@ import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpenses/ExpenseForm";
 import { storeExpense, updateExpense, deleteExpense } from "../util/http";
 import LoadingOverlay from "../components/UI/LoadingOverlay";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 
 //we will use the "route" prop to extract the id:
 function ManageExpenses({ route, navigation }) {
+  const [error, setError] = useState();
   const [isSendingData, setIsSendingData] = useState(false);
   // to trigger the deletion function, we need access to context:
   const expensesCtx = useContext(ExpensesContext);
@@ -32,11 +34,16 @@ function ManageExpenses({ route, navigation }) {
 
   async function deleteExpensesHandler() {
     setIsSendingData(true);
-    await deleteExpense(editExpenseId);
-    setIsSendingData(false);
+    try {
+      await deleteExpense(editExpenseId);
+      expensesCtx.deleteExpense(editExpenseId);
+      navigation.goBack();
+    } catch (error) {
+      setError("could not deletet expense. try again later");
+      setIsSendingData(false);
+    }
+
     //to delete an item, the items id should be passed:
-    expensesCtx.deleteExpense(editExpenseId);
-    navigation.goBack();
   }
 
   function cancelHandler() {
@@ -46,19 +53,32 @@ function ManageExpenses({ route, navigation }) {
   //except of saving the data localy using Ctx(context) so will; have anm offline copy, we want to save it in our axios based database
   async function confirmHandler(expenseData) {
     setIsSendingData(true);
-    if (isEditing) {
-      expensesCtx.updateExpense({
-        id: editExpenseId,
-        expenseData: expenseData,
-      });
-      await updateExpense(editExpenseId, expenseData);
-    } else {
-      //now this id will also be a part of what we are sending to the context:
-      const id = await storeExpense(expenseData);
-      expensesCtx.addExpense({ ...expenseData, id: id });
+    try {
+      if (isEditing) {
+        expensesCtx.updateExpense({
+          id: editExpenseId,
+          expenseData: expenseData,
+        });
+        await updateExpense(editExpenseId, expenseData);
+      } else {
+        //now this id will also be a part of what we are sending to the context:
+        const id = await storeExpense(expenseData);
+        expensesCtx.addExpense({ ...expenseData, id: id });
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not save data. please try again later");
+      setIsSendingData(false);
     }
-    navigation.goBack();
   } //connection on confirmHandler to ExpenseForm.js will be through thr onSubmit prop in <ExpenseForm>:
+
+  function errorHandler() {
+    setError(null);
+  }
+
+  if (error && !isSendingData) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
 
   if (isSendingData) {
     return <LoadingOverlay />;
