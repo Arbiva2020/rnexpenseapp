@@ -5,10 +5,12 @@ import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpenses/ExpenseForm";
-import { storeExpense } from "../util/http";
+import { storeExpense, updateExpense, deleteExpense } from "../util/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 //we will use the "route" prop to extract the id:
 function ManageExpenses({ route, navigation }) {
+  const [isSendingData, setIsSendingData] = useState(false);
   // to trigger the deletion function, we need access to context:
   const expensesCtx = useContext(ExpensesContext);
   const editExpenseId = route.params?.expenseId;
@@ -28,7 +30,10 @@ function ManageExpenses({ route, navigation }) {
     });
   }, [navigation, isEditing]);
 
-  function deleteExpensesHandler() {
+  async function deleteExpensesHandler() {
+    setIsSendingData(true);
+    await deleteExpense(editExpenseId);
+    setIsSendingData(false);
     //to delete an item, the items id should be passed:
     expensesCtx.deleteExpense(editExpenseId);
     navigation.goBack();
@@ -39,18 +44,25 @@ function ManageExpenses({ route, navigation }) {
   }
 
   //except of saving the data localy using Ctx(context) so will; have anm offline copy, we want to save it in our axios based database
-  function confirmHandler(expenseData) {
+  async function confirmHandler(expenseData) {
+    setIsSendingData(true);
     if (isEditing) {
       expensesCtx.updateExpense({
         id: editExpenseId,
         expenseData: expenseData,
       });
+      await updateExpense(editExpenseId, expenseData);
     } else {
-      storeExpense(expenseData);
-      expensesCtx.addExpense(expenseData);
+      //now this id will also be a part of what we are sending to the context:
+      const id = await storeExpense(expenseData);
+      expensesCtx.addExpense({ ...expenseData, id: id });
     }
     navigation.goBack();
   } //connection on confirmHandler to ExpenseForm.js will be through thr onSubmit prop in <ExpenseForm>:
+
+  if (isSendingData) {
+    return <LoadingOverlay />;
+  }
 
   return (
     <View style={styles.container}>

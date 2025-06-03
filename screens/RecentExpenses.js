@@ -6,14 +6,19 @@ import { useContext, useEffect, useState } from "react";
 import { getDateMinusDays } from "../util/date";
 import { ExpensesContext } from "../store/expenses-context";
 import { fetchExpenses } from "../util/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function RecentExpenses() {
+  //i want to have local state here to know if we are loading data or not:
+  const [isFetching, setIsFetching] = useState(true);
   const expensesCtx = useContext(ExpensesContext);
   // const [fetchedExpenses, setFetchedExpenses] = useState([]);
 
   useEffect(() => {
     async function getExpenses() {
+      setIsFetching(true);
       const expenses = await fetchExpenses(); // This now refers to the imported function
+      setIsFetching(false);
       const expensesWithDates = expenses.map((expense) => ({
         ...expense,
         date: new Date(expense.date),
@@ -27,6 +32,10 @@ function RecentExpenses() {
     }
     getExpenses();
   }, []);
+
+  if (isFetching) {
+    return <LoadingOverlay />;
+  }
 
   const recentExpenses = expensesCtx.expenses.filter((expense) => {
     //const recentExpenses = fetchedExpenses.filter((expense) => {
